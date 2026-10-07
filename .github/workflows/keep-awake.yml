@@ -1,0 +1,49 @@
+# ปลุกแอปบน Streamlit Community Cloud ไม่ให้หลับ (ฟรี ใช้ GitHub Actions)
+# เปิดหน้าเว็บด้วยเบราว์เซอร์จริงทุก 8 ชั่วโมง ถ้าแอปหลับอยู่จะกดปุ่มปลุกให้
+#
+# หมายเหตุ: GitHub จะปิด workflow ที่ตั้งเวลาไว้อัตโนมัติ ถ้า repo ไม่มีการ commit เลย 60 วัน
+# (จะมีอีเมลเตือนก่อน กด "Enable workflow" ในแท็บ Actions เพื่อเปิดใหม่ได้)
+name: Keep app awake
+
+on:
+  schedule:
+    - cron: "17 */8 * * *"   # ทุก 8 ชั่วโมง (เวลา UTC)
+  workflow_dispatch:          # กดรันเองได้จากแท็บ Actions
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      APP_URL: ${{ vars.APP_URL || 'https://solar-roi-th.streamlit.app' }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Visit app (and wake it if sleeping)
+        shell: python
+        run: |
+          import os, re
+          from playwright.sync_api import sync_playwright
+
+          url = os.environ["APP_URL"]
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page()
+              page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+              page.wait_for_timeout(10_000)
+              btn = page.get_by_role("button", name=re.compile("get this app back up", re.I))
+              if btn.count() > 0:
+                  print("App was asleep -> waking it up")
+                  btn.first.click()
+                  page.wait_for_timeout(90_000)
+              else:
+                  print("App is awake")
+                  page.wait_for_timeout(15_000)
+              browser.close()

@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+primaryColor = "#f59e0b"
+backgroundColor = "#0b1120"
+secondaryBackgroundColor = "#111827"
+textColor = "#e5e7eb"
+font = "sans serif"
+
+[client]
+# ซ่อนเมนูสำหรับนักพัฒนา ให้ผู้ใช้ทั่วไปเห็นหน้าเว็บสะอาด ๆ
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
