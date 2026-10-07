@@ -1,14 +1,18 @@
 # ปลุกแอปบน Streamlit Community Cloud ไม่ให้หลับ (ฟรี ใช้ GitHub Actions)
 # เปิดหน้าเว็บด้วยเบราว์เซอร์จริงทุก 8 ชั่วโมง ถ้าแอปหลับอยู่จะกดปุ่มปลุกให้
 #
-# หมายเหตุ: GitHub จะปิด workflow ที่ตั้งเวลาไว้อัตโนมัติ ถ้า repo ไม่มีการ commit เลย 60 วัน
-# (จะมีอีเมลเตือนก่อน กด "Enable workflow" ในแท็บ Actions เพื่อเปิดใหม่ได้)
+# ความปลอดภัย: ไม่ใช้ token ส่วนตัวของเจ้าของบัญชีเลย
+# ใช้เฉพาะ GITHUB_TOKEN ชั่วคราวที่ GitHub สร้างให้ทุกครั้งที่รัน ใช้ได้แค่ใน repo นี้ และหมดอายุเมื่องานจบ
 name: Keep app awake
 
 on:
   schedule:
     - cron: "17 */8 * * *"   # ทุก 8 ชั่วโมง (เวลา UTC)
   workflow_dispatch:          # กดรันเองได้จากแท็บ Actions
+
+# สิทธิ์ขั้นต่ำ: อ่านโค้ดไม่ได้ แก้โค้ดไม่ได้ ทำได้แค่สั่งเปิด workflow ของ repo นี้
+permissions:
+  actions: write
 
 jobs:
   wake:
@@ -17,6 +21,13 @@ jobs:
     env:
       APP_URL: ${{ vars.APP_URL || 'https://solar-roi-th.streamlit.app' }}
     steps:
+      # GitHub จะปิดงานตั้งเวลาเองถ้า repo ไม่มี commit 60 วัน
+      # สั่ง "enable" ซ้ำทุกรอบเพื่อให้รันต่อไปได้เรื่อย ๆ โดยไม่ต้องมีใครมาแก้โค้ด
+      - name: Keep this schedule from being auto-disabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/keep-awake.yml/enable"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
