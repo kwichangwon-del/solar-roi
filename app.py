@@ -414,16 +414,7 @@ st.success(
     f"หลังจากนั้นจะประหยัดค่าไฟได้ราว **{monthly_savings * 12:,.0f} บาทต่อปี**"
 )
 
-# สกัดโครงสร้าง Dataframe เป็นกระแสข้อมูลไบต์แบบ CSV
-csv_data = df_plot.to_csv(index=False).encode('utf-8-sig') 
-st.download_button(
-    label="📥 ดาวน์โหลดตารางผลคำนวณ (CSV)",
-    data=csv_data,
-    file_name='solar_financial_modeling.csv',
-    mime='text/csv',
-    type="primary",
-    width="stretch",
-)
+
 
 st.caption(
     "ℹ️ ผลลัพธ์เป็นการประมาณเบื้องต้น คิดค่าไฟ 4.5 บาท/หน่วย ประสิทธิภาพระบบ 80% "
